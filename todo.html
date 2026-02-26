@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>To-Do</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8;
+    --ink: #1a1512;
+    --accent: #c84b2f;
+    --muted: #9a8f83;
+    --line: #d4cdc4;
+    --done-bg: #ede8e0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 60px 20px;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 540px;
+  }
+
+  header {
+    margin-bottom: 48px;
+  }
+
+  .label {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(48px, 8vw, 72px);
+    line-height: 0.95;
+    color: var(--ink);
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .date {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .input-row {
+    display: flex;
+    gap: 0;
+    margin-bottom: 40px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .input-row input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 12px 0;
+    caret-color: var(--accent);
+  }
+
+  .input-row input::placeholder { color: var(--muted); }
+
+  .add-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--accent);
+    padding: 8px 0 8px 12px;
+    transition: transform 0.15s;
+  }
+
+  .add-btn:hover { transform: scale(1.2) rotate(90deg); }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  .tasks { list-style: none; margin-bottom: 40px; }
+
+  .task {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    animation: slideIn 0.25s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .task-check {
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--ink);
+    border-radius: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+    transition: all 0.15s;
+  }
+
+  .task-check:hover { border-color: var(--accent); }
+
+  .task.done .task-check {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .task.done .task-check::after {
+    content: '✓';
+    color: var(--bg);
+    font-size: 12px;
+  }
+
+  .task-text {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.5;
+    padding-top: 1px;
+    transition: all 0.2s;
+  }
+
+  .task.done .task-text {
+    text-decoration: line-through;
+    color: var(--muted);
+  }
+
+  .task-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--line);
+    font-size: 16px;
+    padding: 2px 4px;
+    transition: color 0.15s;
+    opacity: 0;
+  }
+
+  .task:hover .task-del { opacity: 1; }
+  .task-del:hover { color: var(--accent); }
+
+  .empty {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 20px 0;
+    font-family: 'DM Serif Display', serif;
+  }
+
+  .stats {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    margin-top: 24px;
+  }
+
+  .stats span { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="label">Daily list</div>
+    <h1>To-<em>do</em></h1>
+    <div class="date" id="dateDisplay"></div>
+  </header>
+
+  <div class="input-row">
+    <input type="text" id="taskInput" placeholder="Add a new task..." autocomplete="off">
+    <button class="add-btn" onclick="addTask()">+</button>
+  </div>
+
+  <div id="activeSection">
+    <div class="section-label">Tasks</div>
+    <ul class="tasks" id="taskList"></ul>
+  </div>
+
+  <div id="doneSection" style="display:none">
+    <div class="section-label">Done</div>
+    <ul class="tasks" id="doneList"></ul>
+  </div>
+
+  <div class="stats" id="stats"></div>
+</div>
+
+<script>
+  let tasks = JSON.parse(localStorage.getItem('vtasks') || '[]');
+
+  document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+
+  document.getElementById('taskInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addTask();
+  });
+
+  function addTask() {
+    const input = document.getElementById('taskInput');
+    const text = input.value.trim();
+    if (!text) return;
+    tasks.unshift({ id: Date.now(), text, done: false });
+    input.value = '';
+    save();
+    render();
+  }
+
+  function toggle(id) {
+    const t = tasks.find(t => t.id === id);
+    if (t) t.done = !t.done;
+    save();
+    render();
+  }
+
+  function remove(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    save();
+    render();
+  }
+
+  function save() {
+    localStorage.setItem('vtasks', JSON.stringify(tasks));
+  }
+
+  function render() {
+    const active = tasks.filter(t => !t.done);
+    const done = tasks.filter(t => t.done);
+
+    const taskList = document.getElementById('taskList');
+    const doneList = document.getElementById('doneList');
+
+    taskList.innerHTML = active.length === 0
+      ? '<li class="empty">Nothing here yet — add something above.</li>'
+      : active.map(t => taskItem(t)).join('');
+
+    document.getElementById('doneSection').style.display = done.length ? 'block' : 'none';
+    doneList.innerHTML = done.map(t => taskItem(t)).join('');
+
+    const total = tasks.length;
+    const pct = total ? Math.round((done.length / total) * 100) : 0;
+    document.getElementById('stats').innerHTML = total
+      ? `<span>${done.length}</span> of <span>${total}</span> completed &mdash; ${pct}%`
+      : '';
+  }
+
+  function taskItem(t) {
+    return `<li class="task ${t.done ? 'done' : ''}" id="task-${t.id}">
+      <div class="task-check" onclick="toggle(${t.id})"></div>
+      <span class="task-text">${escHtml(t.text)}</span>
+      <button class="task-del" onclick="remove(${t.id})">×</button>
+    </li>`;
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  render();
+</script>
+</body>
+</html>
